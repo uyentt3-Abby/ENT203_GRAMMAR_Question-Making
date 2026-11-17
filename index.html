@@ -3,30 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A2 English Question Unscramble Trainer</title>
+    <title>Question Builder - Interactive Classroom App</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Nunito & Plus Jakarta Sans for clean, bold, friendly classroom legibility -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for gentle, pleasant classroom sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Nunito"', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
+                        pastel: {
+                            lavender: '#E6E6FA',
+                            babyblue: '#D6EFFF',
+                            mint: '#D4F8E8',
+                            peach: '#FFE5D9',
+                            pink: '#FFD6E0',
+                            purpleText: '#5B4B8A',
+                            blueText: '#2B5876',
+                            mintText: '#1F6E58',
+                            peachText: '#8C4A32',
+                            pinkText: '#8A3B58'
+                        }
+                    },
+                    animation: {
+                        'pop-in': 'popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'shake': 'shake 0.45s cubic-bezier(.36,.07,.19,.97) both',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.85) translateY(8px)' },
+                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
                         }
                     }
                 }
@@ -36,1252 +70,1273 @@
 
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
+            background: linear-gradient(135deg, #E6E6FA 0%, #D6EFFF 25%, #D4F8E8 55%, #FFE5D9 80%, #FFD6E0 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 18s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 40px -15px rgba(91, 75, 138, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.05);
         }
 
         .word-chip {
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .word-chip:hover {
-            transform: translateY(-2px);
+        .word-chip:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 20px -5px rgba(91, 75, 138, 0.2);
         }
 
-        .word-chip:active {
-            transform: scale(0.95);
+        .word-chip:active:not(:disabled) {
+            transform: translateY(0px) scale(0.97);
         }
 
-        .slot-target {
-            min-height: 80px;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 12px 12px;
+        /* Custom subtle scrollbar for unit filter */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        @keyframes popSuccess {
-            0% { transform: scale(0.9); opacity: 0.5; }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .animate-pop {
-            animation: popSuccess 0.35s ease-out forwards;
-        }
-
-        @keyframes shakeError {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
-        }
-
-        .animate-shake {
-            animation: shakeError 0.4s ease-in-out;
-        }
-
-        /* Custom scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* Confetti canvas overlay */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between antialiased">
+<body class="text-slate-800 flex flex-col justify-between p-3 sm:p-6 md:p-8 selection:bg-purple-200">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-slate-800/90 border-b border-slate-700/80 sticky top-0 z-30 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <!-- Brand / Logo -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid font-bold text-lg fa-spell-check"></i>
+    <!-- Confetti Overlay -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Top Navigation & Classroom Controls -->
+    <header class="max-w-6xl w-full mx-auto mb-4 sm:mb-6">
+        <div class="glass-panel rounded-3xl p-4 sm:px-7 sm:py-4 flex flex-wrap items-center justify-between gap-4">
+            <!-- Brand & Title -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-puzzle-piece text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
-                        Grammar Order Master
-                        <span class="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-2 py-0.5 rounded-full border border-indigo-500/30">A2 Level</span>
+                    <h1 class="font-display font-black text-xl sm:text-2xl md:text-3xl tracking-tight text-slate-800">
+                        Question Builder <span class="text-sm sm:text-base font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 align-middle ml-1">A1–A2</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Arrange words into correct question order</p>
+                    <p class="text-xs sm:text-sm font-semibold text-slate-500">Sắp xếp từ gợi ý thành câu hỏi hoàn chỉnh</p>
                 </div>
             </div>
 
-            <!-- Header Controls & Score -->
-            <div class="flex items-center gap-2 sm:gap-4">
-                <!-- Sound Toggle -->
-                <button id="soundToggleBtn" onclick="toggleAudio()" class="w-9 h-9 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition" title="Toggle Sound">
-                    <i id="soundIcon" class="fa-solid fa-volume-high text-sm"></i>
-                </button>
-
-                <!-- Drawer Toggle -->
-                <button onclick="toggleGridDrawer()" class="flex items-center gap-2 bg-slate-700/80 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600/50 text-sm font-medium text-slate-200 transition">
-                    <i class="fa-solid fa-grid-2 text-indigo-400"></i>
-                    <span class="hidden sm:inline">Questions</span>
-                    <span id="headerProgress" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-indigo-300 font-mono">1/50</span>
-                </button>
-
-                <!-- Score Badge -->
-                <div class="flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 px-3 py-1.5 rounded-lg">
-                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
-                    <span id="scoreDisplay" class="font-bold font-mono text-sm text-indigo-200">0</span>
-                    <span class="text-xs text-slate-400">pts</span>
+            <!-- Classroom Utility Controls -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <!-- Score Pill -->
+                <div class="flex items-center gap-2 bg-emerald-50 border-2 border-emerald-200 px-4 py-2 rounded-2xl">
+                    <i class="fa-solid fa-star text-amber-400 text-lg"></i>
+                    <span class="font-display font-extrabold text-lg sm:text-xl text-emerald-800" id="score-display">0 / 50</span>
                 </div>
+
+                <!-- Sound Toggle -->
+                <button id="sound-btn" onclick="toggleSound()" title="Bật / Tắt âm thanh" class="p-3 rounded-2xl bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 text-sky-700 transition active:scale-95">
+                    <i class="fa-solid fa-volume-high text-lg" id="sound-icon"></i>
+                </button>
+
+                <!-- Font Size / Projector Zoom Toggle -->
+                <button id="zoom-btn" onclick="toggleProjectorMode()" title="Chế độ máy chiếu (Chữ siêu lớn)" class="p-3 rounded-2xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-200 text-amber-700 transition active:scale-95 flex items-center gap-1.5 font-bold text-sm">
+                    <i class="fa-solid fa-magnifying-glass-plus text-lg"></i>
+                    <span class="hidden md:inline" id="zoom-label">Chữ lớn</span>
+                </button>
+
+                <!-- Question List Drawer Toggle -->
+                <button onclick="toggleQuestionModal()" class="p-3 px-4 rounded-2xl bg-purple-100 hover:bg-purple-200 border-2 border-purple-200 text-purple-800 font-bold text-sm sm:text-base transition active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-list-ol"></i>
+                    <span>Danh sách 50 câu</span>
+                </button>
             </div>
         </div>
 
-        <!-- Global Progress Bar -->
-        <div class="w-full bg-slate-900 h-1.5 overflow-hidden">
-            <div id="progressBar" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+        <!-- Unit Filter Bar -->
+        <div class="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="unit-filter-bar">
+            <!-- Dynamically populated Unit Pills -->
         </div>
     </header>
 
-    <!-- Main Workspace -->
-    <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-1 flex flex-col justify-center">
-
-        <!-- Question Drawer Sidebar / Modal (Hidden by default) -->
-        <div id="drawerOverlay" onclick="toggleGridDrawer()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 hidden transition-opacity"></div>
-        <aside id="gridDrawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-slate-800 border-l border-slate-700 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
-            <div class="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/80">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-indigo-400"></i>
-                    <h2 class="font-bold text-slate-100">Question Navigator (50)</h2>
+    <!-- Main Interactive Stage -->
+    <main class="max-w-6xl w-full mx-auto flex-1 flex flex-col justify-center">
+        <div class="glass-panel rounded-[2rem] p-5 sm:p-8 md:p-10 transition-all duration-300 relative overflow-hidden" id="main-card">
+            
+            <!-- Top Metadata Bar: Question Number, Unit Badge, Grammar Point -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b-2 border-slate-100">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <span id="q-number-badge" class="px-4 py-1.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-display font-black text-lg sm:text-xl shadow-sm">
+                        Câu 1 / 50
+                    </span>
+                    <span id="unit-badge" class="px-4 py-1.5 rounded-2xl bg-sky-100 text-sky-800 font-bold text-sm sm:text-base border border-sky-200">
+                        Unit 1: Getting Acquainted
+                    </span>
                 </div>
-                <button onclick="toggleGridDrawer()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400">Ngữ pháp:</span>
+                    <span id="grammar-badge" class="px-3.5 py-1.5 rounded-xl bg-amber-100/80 text-amber-900 font-bold text-sm sm:text-base border border-amber-200">
+                        Present Perfect (Yes/No)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Vietnamese Context / Prompt Hint -->
+            <div class="mb-6 bg-gradient-to-r from-purple-50/90 via-pink-50/70 to-sky-50/90 rounded-2xl p-4 sm:p-5 border border-purple-100 flex items-start sm:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-purple-500 shrink-0 mt-0.5 sm:mt-0">
+                        <i class="fa-solid fa-language text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-extrabold uppercase tracking-wider text-purple-400 mb-0.5">Ý nghĩa câu hỏi cần ghép:</p>
+                        <p id="vietnamese-meaning" class="font-display font-bold text-lg sm:text-xl md:text-2xl text-slate-700 leading-snug">
+                            Bạn đã từng thử món ăn địa phương nào chưa?
+                        </p>
+                    </div>
+                </div>
+                <button onclick="showHint()" id="hint-btn" class="shrink-0 px-4 py-2.5 rounded-xl bg-white hover:bg-amber-50 text-amber-600 border-2 border-amber-200 font-bold text-sm sm:text-base shadow-sm transition active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Gợi ý từ đầu</span>
                 </button>
             </div>
 
-            <!-- Filter Pills in Drawer -->
-            <div class="p-3 bg-slate-850 border-b border-slate-700/60 overflow-x-auto">
-                <div id="categoryFilterContainer" class="flex gap-1.5 text-xs whitespace-nowrap">
-                    <!-- Dynamic categories injected here -->
-                </div>
-            </div>
-
-            <!-- Grid of 50 Questions -->
-            <div class="p-4 overflow-y-auto flex-1">
-                <div id="questionsGrid" class="grid grid-cols-5 gap-2">
-                    <!-- Grid items 1 to 50 generated dynamically -->
-                </div>
-            </div>
-
-            <!-- Footer Stats in Drawer -->
-            <div class="p-4 border-t border-slate-700 bg-slate-850 flex items-center justify-between text-xs text-slate-400">
-                <div class="flex items-center gap-3">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Correct</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Mistake</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span> Unsolved</span>
-                </div>
-                <button onclick="showResultsModal()" class="text-indigo-400 hover:underline font-semibold">Finish Test</button>
-            </div>
-        </aside>
-
-        <!-- Main Question Card Container -->
-        <section id="quizCard" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 sm:p-7 shadow-xl backdrop-blur-sm relative overflow-hidden">
-            
-            <!-- Question Top Meta -->
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-2">
-                    <span id="questionNumBadge" class="bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold px-3 py-1 rounded-full">
-                        Question 1 / 50
-                    </span>
-                    <span id="questionCategory" class="bg-slate-700 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-600">
-                        Present Simple
-                    </span>
-                </div>
-
-                <div class="flex items-center gap-3 text-xs text-slate-400">
-                    <button onclick="getHint()" id="hintBtn" class="flex items-center gap-1 text-amber-400 hover:text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-lg transition">
-                        <i class="fa-solid fa-lightbulb"></i>
-                        <span>Hint</span>
-                    </button>
-                    <span id="streakBadge" class="hidden items-center gap-1 text-orange-400 font-semibold bg-orange-400/10 px-2 py-0.5 rounded">
-                        <i class="fa-solid fa-fire"></i> <span id="streakCount">0</span> Streak
-                    </span>
-                </div>
-            </div>
-
-            <!-- Instruction Title -->
-            <div class="mb-5">
-                <h2 class="text-slate-300 text-sm font-medium mb-1">Arrange the words into a grammatically correct question:</h2>
-                <div id="patternHint" class="text-xs text-indigo-300/80 italic font-mono hidden">
-                    <i class="fa-solid fa-circle-info mr-1"></i> Pattern: <span id="patternText"></span>
-                </div>
-            </div>
-
-            <!-- Target Drop Zone / Sentence Builder Line -->
+            <!-- Answer Drop / Construction Zone -->
             <div class="mb-6">
-                <div class="flex items-center justify-between mb-1.5 text-xs text-slate-400">
-                    <span>Your Answer:</span>
-                    <button onclick="clearSelectedWords()" class="text-slate-400 hover:text-rose-400 text-xs flex items-center gap-1 transition">
-                        <i class="fa-solid fa-rotate-left text-[10px]"></i> Reset Line
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Câu trả lời của bạn (Nhấn vào từ để bỏ chọn):
+                    </span>
+                    <button onclick="resetCurrentQuestion()" class="text-xs sm:text-sm font-bold text-rose-500 hover:text-rose-700 flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-rotate-left"></i> Xếp lại từ đầu
                     </button>
                 </div>
-                
-                <div id="answerDropZone" 
-                     class="slot-target border-2 border-dashed border-slate-600 hover:border-slate-500 rounded-xl p-3 min-h-[90px] flex flex-wrap items-center gap-2 transition-all bg-slate-900/60"
-                     ondragover="allowDrop(event)" 
-                     ondrop="handleDropToAnswer(event)">
-                    <span id="emptyPlaceholder" class="text-slate-500 text-sm italic select-none pointer-events-none w-full text-center">
-                        Tap words below or drag them here to build the question...
+
+                <div id="answer-zone" class="min-h-[96px] sm:min-h-[116px] w-full rounded-3xl bg-white/90 border-3 border-dashed border-indigo-200 p-4 sm:p-5 flex flex-wrap items-center gap-2.5 sm:gap-3.5 transition-all duration-300 shadow-inner">
+                    <!-- Selected word chips appear here -->
+                    <span id="answer-placeholder" class="text-slate-400 font-semibold text-base sm:text-xl italic select-none w-full text-center">
+                        Nhấn vào các thẻ từ bên dưới để xếp thành câu hỏi hoàn chỉnh...
                     </span>
-                    <!-- Selected word chips will be appended here -->
                 </div>
             </div>
 
-            <!-- Scrambled Words Pool -->
-            <div class="mb-6">
-                <div class="text-xs text-slate-400 mb-2 flex justify-between items-center">
-                    <span>Available Words:</span>
-                    <span class="text-[11px] text-slate-500">Click a word to add it</span>
-                </div>
-                <div id="wordsPool" 
-                     class="min-h-[80px] bg-slate-850 p-4 rounded-xl border border-slate-700/60 flex flex-wrap justify-center items-center gap-2.5 bg-slate-900/30"
-                     ondragover="allowDrop(event)" 
-                     ondrop="handleDropToPool(event)">
-                    <!-- Scrambled word chips injected here -->
+            <!-- Word Bank (Shuffled Cues) -->
+            <div class="mb-8">
+                <span class="block text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-cubes text-teal-500"></i> Các từ gợi ý (Cues):
+                </span>
+                <div id="word-bank" class="min-h-[84px] p-4 sm:p-5 rounded-3xl bg-slate-50/80 border border-slate-200/80 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                    <!-- Shuffled word buttons appear here -->
                 </div>
             </div>
 
-            <!-- Grammar Explanation & Feedback Box (Hidden initially) -->
-            <div id="feedbackBanner" class="hidden mb-6 p-4 rounded-xl border transition-all animate-pop">
-                <div class="flex items-start gap-3">
-                    <div id="feedbackIcon" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                        <!-- Icon injected -->
+            <!-- Feedback & Vietnamese Grammar Explanation Box (Hidden until checked) -->
+            <div id="feedback-box" class="hidden mb-6 rounded-3xl p-5 sm:p-6 border-2 transition-all duration-300 animate-slide-up">
+                <div class="flex items-start gap-4">
+                    <div id="feedback-icon-wrap" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm">
+                        <i id="feedback-icon" class="fa-solid fa-check"></i>
                     </div>
                     <div class="flex-1">
-                        <h4 id="feedbackTitle" class="font-bold text-sm mb-1"></h4>
-                        <p id="feedbackText" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
-                        <div id="correctOrderBox" class="mt-2.5 pt-2 border-t border-slate-700/50 text-xs hidden">
-                            <span class="text-slate-400 font-semibold">Correct Order:</span>
-                            <p id="correctOrderSentence" class="font-semibold text-emerald-300 text-sm mt-0.5 font-mono"></p>
+                        <h3 id="feedback-title" class="font-display font-black text-xl sm:text-2xl mb-1">
+                            Chính xác! Tuyệt vời!
+                        </h3>
+                        <p id="correct-sentence-display" class="font-display font-extrabold text-lg sm:text-2xl text-indigo-900 bg-white/80 px-4 py-2 rounded-xl border border-indigo-100 inline-block my-2">
+                            Have you ever tried local food?
+                        </p>
+                        <div class="mt-2 text-slate-700 text-base sm:text-lg leading-relaxed space-y-1.5">
+                            <p id="feedback-explanation" class="font-medium"></p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Navigation and Action Buttons -->
-            <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-700/60">
-                <button id="prevBtn" onclick="navigateQuestion(-1)" class="px-4 py-2.5 rounded-xl border border-slate-600 bg-slate-700/50 hover:bg-slate-700 text-slate-200 text-sm font-semibold flex items-center gap-2 transition disabled:opacity-40 disabled:pointer-events-none">
-                    <i class="fa-solid fa-arrow-left text-xs"></i> Previous
+            <!-- Action Controls Footer -->
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
+                <!-- Previous Button -->
+                <button onclick="prevQuestion()" id="prev-btn" class="px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 font-display font-extrabold text-base sm:text-lg shadow-sm transition active:scale-95 flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Câu trước</span>
                 </button>
 
-                <div class="flex items-center gap-2">
-                    <button id="checkBtn" onclick="checkAnswer()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition transform active:scale-95">
-                        <span>Check Answer</span>
-                        <i class="fa-solid fa-check"></i>
+                <!-- Center Primary Action Buttons -->
+                <div class="flex items-center gap-3 sm:gap-4 flex-1 sm:flex-initial justify-center">
+                    <button onclick="checkAnswer()" id="check-btn" class="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-display font-black text-lg sm:text-xl shadow-lg shadow-purple-200 transition transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2.5">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Kiểm tra đáp án</span>
                     </button>
 
-                    <button id="nextBtn" onclick="navigateQuestion(1)" class="hidden px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition transform active:scale-95">
-                        <span>Next Question</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    <button onclick="revealAnswer()" id="reveal-btn" title="Hiện đáp án mẫu" class="px-4 py-4 rounded-2xl bg-teal-50 hover:bg-teal-100 text-teal-800 border-2 border-teal-200 font-display font-bold text-base sm:text-lg transition active:scale-95 flex items-center gap-2">
+                        <i class="fa-solid fa-eye"></i>
+                        <span class="hidden md:inline">Đáp án</span>
                     </button>
                 </div>
-            </div>
 
-        </section>
+                <!-- Next Button -->
+                <button onclick="nextQuestion()" id="next-btn" class="px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-display font-extrabold text-base sm:text-lg shadow-md shadow-emerald-200 transition active:scale-95 flex items-center gap-2">
+                    <span>Câu tiếp theo</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
     </main>
 
-    <!-- Results / Final Score Modal -->
-    <div id="resultsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-pop">
-            
-            <div class="text-center mb-5">
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 mx-auto flex items-center justify-center text-3xl text-white shadow-xl shadow-indigo-500/30 mb-3">
-                    <i class="fa-solid fa-trophy"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-white">Exercise Complete!</h2>
-                <p class="text-slate-400 text-xs mt-1">Here is how you performed in A2 Question Word Order</p>
+    <!-- Progress Bar Footer -->
+    <footer class="max-w-6xl w-full mx-auto mt-4 sm:mt-6">
+        <div class="glass-panel rounded-2xl p-3 sm:px-6 flex items-center gap-4">
+            <span class="text-xs sm:text-sm font-extrabold text-slate-600 whitespace-nowrap" id="progress-text">Tiến độ: 2%</span>
+            <div class="w-full bg-slate-200/80 h-3.5 rounded-full overflow-hidden p-0.5">
+                <div id="progress-bar" class="h-full rounded-full bg-gradient-to-r from-teal-400 via-indigo-400 to-pink-400 transition-all duration-500" style="width: 2%"></div>
             </div>
+        </div>
+    </footer>
 
-            <!-- Stats Overview -->
-            <div class="grid grid-cols-3 gap-3 mb-5">
-                <div class="bg-slate-900/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                    <div id="finalScore" class="text-xl font-extrabold text-indigo-400 font-mono">0 / 50</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Correct Score</div>
+    <!-- Modal: All 50 Questions Navigator -->
+    <div id="questions-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl border-2 border-purple-100 animate-pop-in">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h2 class="font-display font-black text-2xl text-slate-800">Danh sách 50 câu hỏi (Units 1 – 10)</h2>
+                    <p class="text-sm font-semibold text-slate-500">Chọn bất kỳ câu nào để trình chiếu cho lớp học</p>
                 </div>
-                <div class="bg-slate-900/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                    <div id="accuracyPercent" class="text-xl font-extrabold text-emerald-400 font-mono">0%</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Accuracy</div>
-                </div>
-                <div class="bg-slate-900/60 border border-slate-700/60 p-3 rounded-xl text-center">
-                    <div id="masteryBadge" class="text-xs font-extrabold text-amber-400 mt-1">Beginner</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5">Grammar Rank</div>
-                </div>
+                <button onclick="toggleQuestionModal()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
-
-            <!-- Incorrect Questions Review List -->
-            <div class="flex-1 overflow-y-auto mb-5 border border-slate-700/60 rounded-xl bg-slate-900/40 p-3">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Detailed Breakdown</h3>
-                <div id="breakdownList" class="space-y-2 text-xs">
-                    <!-- Dynamic review items -->
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex gap-3">
-                <button onclick="restartQuiz()" class="flex-1 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-sm transition">
-                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Restart All
-                </button>
-                <button onclick="retryMistakes()" id="retryMistakesBtn" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition hidden">
-                    <i class="fa-solid fa-filter text-xs mr-1.5"></i> Retry Missed
-                </button>
-                <button onclick="closeResultsModal()" class="py-3 px-4 rounded-xl bg-slate-800 border border-slate-600 hover:bg-slate-700 text-slate-300 text-sm">
-                    Close
-                </button>
+            <div class="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3" id="modal-question-list">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-slate-950/80 border-t border-slate-800/80 py-3 text-center text-xs text-slate-500">
-        Interactive A2 Level English Grammar Training • 50 Word Order Question Practice
-    </footer>
-
     <script>
-        // Audio Synthesizer using Web Audio API
-        let audioEnabled = true;
-        let audioCtx = null;
-
-        function getAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-
-        function playSound(type) {
-            if (!audioEnabled) return;
-            try {
-                const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                const now = ctx.currentTime;
-
-                if (type === 'click') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
-                    osc.start(now);
-                    osc.stop(now + 0.05);
-                } else if (type === 'correct') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
-                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'error') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, now); // A3
-                    osc.frequency.setValueAtTime(174.61, now + 0.1); // F3
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                }
-            } catch (e) {
-                console.log('Audio play error:', e);
-            }
-        }
-
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            const icon = document.getElementById('soundIcon');
-            const btn = document.getElementById('soundToggleBtn');
-            if (audioEnabled) {
-                icon.className = 'fa-solid fa-volume-high text-sm';
-                btn.classList.remove('text-slate-500');
-                btn.classList.add('text-slate-300');
-            } else {
-                icon.className = 'fa-solid fa-volume-xmark text-sm';
-                btn.classList.add('text-slate-500');
-                btn.classList.remove('text-slate-300');
-            }
-        }
-
+        // =========================================================================
+        // 50 CURATED A1-A2 QUESTIONS BASED ON ATTACHED SYLLABUS (UNITS 1 - 10)
+        // =========================================================================
         const questionsData = [
-            // 1. Verb + To Infinitive (1 - 6)
+            // --- UNIT 1: Getting Acquainted (Present Perfect, Yes/No & Wh-questions, ever, yet, before) ---
             {
                 id: 1,
-                category: "Verb + To Infinitive",
-                pattern: "Auxiliary + Subject + Verb + to-infinitive + Object + Time?",
-                words: ["Do", "you", "want", "to", "play", "tennis", "with", "us", "today?"],
-                explanation: "Verbs like 'want' take a 'to + infinitive' verb phrase ('to play')."
+                unit: "Unit 1: Getting Acquainted",
+                unitNum: 1,
+                grammar: "Present Perfect (Ever)",
+                meaning: "Bạn đã từng đi tham quan thành phố bằng xe buýt chưa?",
+                words: ["Have", "you", "ever", "taken", "a", "sightseeing", "tour", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Have + S + ever + V3/ed...? Dùng thì Hiện tại hoàn thành với <em>'ever'</em> (đã từng) để hỏi về trải nghiệm trong đời của ai đó."
             },
             {
                 id: 2,
-                category: "Verb + To Infinitive",
-                pattern: "Wh- word + did + Subject + Verb + to-infinitive + Object?",
-                words: ["Where", "did", "she", "decide", "to", "buy", "her", "new", "shoes?"],
-                explanation: "Verb structure: Wh- word + did + subject + main verb (decide) + to-infinitive (to buy)."
+                unit: "Unit 1: Getting Acquainted",
+                unitNum: 1,
+                grammar: "Present Perfect (Wh-Question)",
+                meaning: "Bạn đã thử những món ăn địa phương nào rồi?",
+                words: ["Which", "local", "dishes", "have", "you", "tried", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Wh-word + have/has + S + V3/ed? Từ để hỏi <em>'Which local dishes'</em> đứng đầu câu, theo sau là trợ động từ <em>'have'</em>."
             },
             {
                 id: 3,
-                category: "Verb + To Infinitive",
-                pattern: "Are + Subject + Verb-ing + to-infinitive + Time?",
-                words: ["Are", "you", "planning", "to", "study", "abroad", "next", "year?"],
-                explanation: "'Planning' is followed by a to-infinitive verb pattern: planning to study."
+                unit: "Unit 1: Getting Acquainted",
+                unitNum: 1,
+                grammar: "Present Perfect (Yet)",
+                meaning: "Cô ấy đã đến thăm bảo tàng nghệ thuật chưa?",
+                words: ["Has", "she", "visited", "the", "art", "museum", "yet", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Has + ngôi thứ 3 số ít (she) + V3/ed + ... + <em>yet</em>? Trạng từ <em>'yet'</em> (chưa) luôn đứng ở cuối câu hỏi thì Hiện tại hoàn thành."
             },
             {
                 id: 4,
-                category: "Verb + To Infinitive",
-                pattern: "Why + did + Subject + Verb + to-infinitive + Object?",
-                words: ["Why", "did", "you", "agree", "to", "help", "him", "with", "his", "work?"],
-                explanation: "'Agree' is followed by 'to + infinitive' (agree to help)."
+                unit: "Unit 1: Getting Acquainted",
+                unitNum: 1,
+                grammar: "Present Perfect (How many times)",
+                meaning: "Bạn đã từng đến Việt Nam bao nhiêu lần rồi?",
+                words: ["How", "many", "times", "have", "you", "been", "to", "Vietnam", "?"],
+                explanation: "<strong>Cấu trúc:</strong> How many times + have/has + S + V3/ed? Dùng để hỏi số lần trải nghiệm một việc gì đó."
             },
             {
                 id: 5,
-                category: "Verb + To Infinitive",
-                pattern: "Does + Subject + Verb + to-infinitive + Place + Time?",
-                words: ["Does", "he", "need", "to", "leave", "the", "party", "early", "tonight?"],
-                explanation: "The modal-like main verb 'need' takes 'to + infinitive' (need to leave)."
-            },
-            {
-                id: 6,
-                category: "Verb + To Infinitive",
-                pattern: "What time + do + Subject + Verb + to-infinitive + Object?",
-                words: ["What", "time", "do", "you", "hope", "to", "finish", "your", "project?"],
-                explanation: "Question order: Question phrase (What time) + do + subject + verb (hope) + to-infinitive (to finish)."
+                unit: "Unit 1: Getting Acquainted",
+                unitNum: 1,
+                grammar: "Present Perfect (Before)",
+                meaning: "Hai người đã từng gặp nhau trước đây chưa?",
+                words: ["Have", "you", "two", "met", "each", "other", "before", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Have + S + V3/ed + ... + <em>before</em>? Trạng từ <em>'before'</em> (trước đây) đặt ở cuối câu hỏi."
             },
 
-            // 2. Verb + Gerund (7 - 12)
+            // --- UNIT 2: Going to the Movies (Present Perfect with for/since, would like / would rather) ---
+            {
+                id: 6,
+                unit: "Unit 2: Going to the Movies",
+                unitNum: 2,
+                grammar: "Would rather (Preferences)",
+                meaning: "Tối nay bạn thích xem phim hài hay phim hành động hơn?",
+                words: ["Would", "you", "rather", "see", "a", "comedy", "or", "an", "action", "movie", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Would + S + rather + V(nguyên mẫu) + A + or + B? Dùng để hỏi sự lựa chọn ưu tiên giữa hai thứ."
+            },
             {
                 id: 7,
-                category: "Verb + Gerund",
-                pattern: "Does + Subject + Verb + Gerund (-ing) + Object?",
-                words: ["Does", "your", "sister", "enjoy", "listening", "to", "classical", "music?"],
-                explanation: "Verbs of preference like 'enjoy' are followed by a gerund verb form ending in -ing (enjoy listening)."
+                unit: "Unit 2: Going to the Movies",
+                unitNum: 2,
+                grammar: "Present Perfect (How long)",
+                meaning: "Bạn đã đứng đợi ở rạp chiếu phim bao lâu rồi?",
+                words: ["How", "long", "have", "you", "waited", "at", "the", "theater", "?"],
+                explanation: "<strong>Cấu trúc:</strong> How long + have/has + S + V3/ed? Dùng <em>'How long'</em> (bao lâu) với thì Hiện tại hoàn thành để hỏi khoảng thời gian."
             },
             {
                 id: 8,
-                category: "Verb + Gerund",
-                pattern: "When + did + Subject + Verb + Gerund (-ing) + Object?",
-                words: ["When", "did", "you", "finish", "painting", "the", "living", "room?"],
-                explanation: "'Finish' takes a gerund object verb form: finish + painting."
+                unit: "Unit 2: Going to the Movies",
+                unitNum: 2,
+                grammar: "Would like (Offers/Requests)",
+                meaning: "Bạn có muốn mua chút bỏng ngô và nước ngọt không?",
+                words: ["Would", "you", "like", "to", "buy", "some", "popcorn", "and", "soda", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Would + S + like + to V(nguyên mẫu)? Dùng để mời hoặc hỏi mong muốn một cách lịch sự."
             },
             {
                 id: 9,
-                category: "Verb + Gerund",
-                pattern: "Do + Subject + Verb + Gerund (-ing) + Prepositional phrase?",
-                words: ["Do", "you", "mind", "opening", "the", "door", "for", "me,", "please?"],
-                explanation: "The polite question structure 'Do you mind...' is followed by a gerund (-ing): mind opening."
+                unit: "Unit 2: Going to the Movies",
+                unitNum: 2,
+                grammar: "Simple Past (Wh-Question)",
+                meaning: "Tại sao tối qua bạn lại đến rạp chiếu phim muộn thế?",
+                words: ["Why", "did", "you", "arrive", "late", "at", "the", "cinema", "last", "night", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Why + did + S + V(nguyên mẫu)? Hỏi lý do cho một hành động đã xảy ra trong quá khứ (<em>last night</em>)."
             },
             {
                 id: 10,
-                category: "Verb + Gerund",
-                pattern: "Why + do + Subject + Verb + Gerund (-ing) + Object?",
-                words: ["Why", "do", "they", "keep", "asking", "the", "same", "question?"],
-                explanation: "The continuous action verb 'keep' is followed directly by a gerund (-ing): keep asking."
+                unit: "Unit 2: Going to the Movies",
+                unitNum: 2,
+                grammar: "Simple Present (Preferences)",
+                meaning: "Bạn thích thể loại phim nào nhất?",
+                words: ["What", "genre", "of", "movies", "do", "you", "like", "best", "?"],
+                explanation: "<strong>Cấu trúc:</strong> What + danh từ + do/does + S + V(nguyên mẫu)? Từ <em>'genre'</em> nghĩa là thể loại phim."
             },
+
+            // --- UNIT 3: Staying in Hotels (Future with will, Real conditional, Polite requests with May/Could) ---
             {
                 id: 11,
-                category: "Verb + Gerund",
-                pattern: "Have + Subject + Verb-ed + Gerund (-ing) + Object?",
-                words: ["Have", "you", "considered", "buying", "a", "smaller", "electric", "car?"],
-                explanation: "The verb 'consider' pattern requires a gerund: considered buying."
+                unit: "Unit 3: Staying in Hotels",
+                unitNum: 3,
+                grammar: "Future with Will (Yes/No)",
+                meaning: "Ngày mai bạn sẽ trả phòng khách sạn lúc mấy giờ?",
+                words: ["What", "time", "will", "you", "check", "out", "of", "the", "hotel", "tomorrow", "?"],
+                explanation: "<strong>Cấu trúc:</strong> What time + will + S + V(nguyên mẫu)? Dùng thì Tương lai đơn với <em>'will'</em> để hỏi kế hoạch/thời gian trả phòng (<em>check out</em>)."
             },
             {
                 id: 12,
-                category: "Verb + Gerund",
-                pattern: "Does + Subject + Verb + Gerund (-ing) + Object + Frequency?",
-                words: ["Does", "he", "practice", "speaking", "English", "every", "single", "day?"],
-                explanation: "The verb 'practice' takes a gerund: practice speaking."
+                unit: "Unit 3: Staying in Hotels",
+                unitNum: 3,
+                grammar: "Polite Request (May I)",
+                meaning: "Tôi có thể để lại lời nhắn cho quản lý khách sạn được không?",
+                words: ["May", "I", "leave", "a", "message", "for", "the", "hotel", "manager", "?"],
+                explanation: "<strong>Cấu trúc:</strong> May + I + V(nguyên mẫu)? Đây là mẫu câu xin phép rất lịch sự trong giao tiếp ở khách sạn."
             },
-
-            // 3. Used to & Didn't use to (13 - 18)
             {
                 id: 13,
-                category: "Used to / Didn't use to",
-                pattern: "Did + Subject + use to + Base Verb + Place?",
-                words: ["Did", "you", "use", "to", "live", "in", "a", "big", "house?"],
-                explanation: "In questions, 'Did' carries past tense, so write 'use to' (without 'd') + base verb."
+                unit: "Unit 3: Staying in Hotels",
+                unitNum: 3,
+                grammar: "Future with Will (Hotel Room)",
+                meaning: "Bạn sẽ đặt phòng đơn hay phòng đôi?",
+                words: ["Will", "you", "book", "a", "single", "room", "or", "a", "double", "room", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Will + S + V(nguyên mẫu)...? <em>'Single room'</em> (phòng đơn) và <em>'double room'</em> (phòng đôi)."
             },
             {
                 id: 14,
-                category: "Used to / Didn't use to",
-                pattern: "Where + did + Subject + use to + Base Verb + Time?",
-                words: ["Where", "did", "your", "parents", "use", "to", "spend", "their", "summer?"],
-                explanation: "Past habitual question order: Where + did + subject + use to + base verb."
+                unit: "Unit 3: Staying in Hotels",
+                unitNum: 3,
+                grammar: "Real Conditional (If clause)",
+                meaning: "Nếu trời mưa vào ngày mai, chúng ta sẽ làm gì?",
+                words: ["What", "will", "we", "do", "if", "it", "rains", "tomorrow", "?"],
+                explanation: "<strong>Câu điều kiện loại 1 (Real Conditional):</strong> Wh-word + will + S + V + if + S + V(hiện tại đơn)?"
             },
             {
                 id: 15,
-                category: "Used to / Didn't use to",
-                pattern: "Why + didn't + Subject + use to + Base Verb + Gerund?",
-                words: ["Why", "didn't", "you", "use", "to", "like", "eating", "vegetables?"],
-                explanation: "Negative habit question: Why + didn't + subject + use to + base verb (like)."
+                unit: "Unit 3: Staying in Hotels",
+                unitNum: 3,
+                grammar: "Polite Offer (Would you like)",
+                meaning: "Bạn có cần thêm khăn tắm sạch cho phòng của mình không?",
+                words: ["Do", "you", "need", "extra", "clean", "towels", "for", "your", "room", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Do + you + need + danh từ? Dùng thì Hiện tại đơn để hỏi nhu cầu dịch vụ buồng phòng."
             },
+
+            // --- UNIT 4: Cars and Driving (Past Continuous vs Simple Past, Phrasal verbs) ---
             {
                 id: 16,
-                category: "Used to / Didn't use to",
-                pattern: "Didn't + Subject + use to + Base Verb + Object?",
-                words: ["Didn't", "she", "use", "to", "have", "long", "dark", "hair?"],
-                explanation: "Negative past state question: Didn't + subject + use to + base verb (have)."
+                unit: "Unit 4: Cars and Driving",
+                unitNum: 4,
+                grammar: "Past Continuous (Wh-Question)",
+                meaning: "Bạn đang làm gì khi vụ tai nạn xe hơi xảy ra?",
+                words: ["What", "were", "you", "doing", "when", "the", "car", "accident", "happened", "?"],
+                explanation: "<strong>Quá khứ tiếp diễn & Quá khứ đơn:</strong> What + was/were + S + V-ing + when + S + V2/ed? Hành động đang diễn ra (Quá khứ tiếp diễn) thì hành động khác xen vào (Quá khứ đơn)."
             },
             {
                 id: 17,
-                category: "Used to / Didn't use to",
-                pattern: "Which + Noun + did + Subject + use to + Base Verb?",
-                words: ["Which", "school", "did", "you", "use", "to", "attend", "as", "a", "child?"],
-                explanation: "Choice question: Which school + did + subject + use to + base verb (attend)."
+                unit: "Unit 4: Cars and Driving",
+                unitNum: 4,
+                grammar: "Past Continuous (Yes/No)",
+                meaning: "Lúc cảnh sát tới thì anh ấy có đang lái xe quá tốc độ không?",
+                words: ["Was", "he", "driving", "too", "fast", "when", "the", "police", "arrived", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Was/Were + S + V-ing...? Chủ ngữ <em>'he'</em> đi với <em>'Was'</em> và động từ thêm đuôi <em>-ing</em>."
             },
             {
                 id: 18,
-                category: "Used to / Didn't use to",
-                pattern: "Why + didn't + Subject + use to + Base Verb + Object?",
-                words: ["Why", "didn't", "he", "use", "to", "play", "sports", "at", "school?"],
-                explanation: "Notice 'use to' is used with 'didn't' (not 'used to'): didn't + use to + play."
+                unit: "Unit 4: Cars and Driving",
+                unitNum: 4,
+                grammar: "Simple Past (Phrasal Verbs)",
+                meaning: "Sáng nay bạn đã đổ đầy bình xăng cho xe chưa?",
+                words: ["Did", "you", "fill", "up", "the", "gas", "tank", "this", "morning", "?"],
+                explanation: "<strong>Cụm động từ (Phrasal verb):</strong> <em>'fill up'</em> nghĩa là đổ đầy (bình xăng). Trong câu hỏi Quá khứ đơn, dùng trợ động từ <em>'Did'</em> + V(nguyên mẫu)."
             },
-
-            // 4. Simple Tenses (Present, Past, Future) (19 - 26)
             {
                 id: 19,
-                category: "Simple Tenses",
-                pattern: "Where + does + Subject + Base Verb + Time?",
-                words: ["Where", "does", "your", "brother", "work", "on", "weekends?"],
-                explanation: "Simple Present Wh- question with 3rd person singular: Where + does + subject + base verb."
+                unit: "Unit 4: Cars and Driving",
+                unitNum: 4,
+                grammar: "Simple Past (Car Rental)",
+                meaning: "Bạn đã thuê chiếc xe SUV đó ở đâu?",
+                words: ["Where", "did", "you", "rent", "that", "SUV", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Where + did + S + V(nguyên mẫu)? Dùng để hỏi địa điểm đã thực hiện hành động trong quá khứ."
             },
             {
                 id: 20,
-                category: "Simple Tenses",
-                pattern: "What time + did + Subject + Base Verb + Time?",
-                words: ["What", "time", "did", "the", "train", "leave", "the", "station", "yesterday?"],
-                explanation: "Simple Past question: What time + did + subject + base verb (leave) + past time expression."
+                unit: "Unit 4: Cars and Driving",
+                unitNum: 4,
+                grammar: "Simple Present (Driving Habits)",
+                meaning: "Có ai bị thương trong vụ tai nạn không?",
+                words: ["Was", "anyone", "hurt", "in", "the", "accident", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Was + đại từ bất định (anyone) + tính từ/V3? <em>'Anyone'</em> luôn chia động từ ở dạng số ít (<em>Was</em>)."
             },
+
+            // --- UNIT 5: Personal Care and Appearance (Quantifiers: some, any, much, many, Indefinite pronouns) ---
             {
                 id: 21,
-                category: "Simple Tenses",
-                pattern: "Will + Subject + Base Verb + Place + Time?",
-                words: ["Will", "you", "come", "to", "my", "birthday", "party", "next", "Saturday?"],
-                explanation: "Simple Future with 'Will': Will + subject + base verb (come) + time."
+                unit: "Unit 5: Personal Care & Appearance",
+                unitNum: 5,
+                grammar: "Quantifiers (Any)",
+                meaning: "Trong phòng tắm có còn chút kem đánh răng nào không?",
+                words: ["Is", "there", "any", "toothpaste", "left", "in", "the", "bathroom", "?"],
+                explanation: "<strong>Lượng từ 'any':</strong> Dùng <em>'any'</em> trong câu hỏi với danh từ không đếm được (<em>toothpaste</em> - kem đánh răng) đi với <em>'Is there'</em>."
             },
             {
                 id: 22,
-                category: "Simple Tenses",
-                pattern: "When + is + Subject + going to + Base Verb + Place?",
-                words: ["When", "is", "your", "family", "going", "to", "visit", "London?"],
-                explanation: "Future with 'be going to': When + is + subject + going to + base verb."
+                unit: "Unit 5: Personal Care & Appearance",
+                unitNum: 5,
+                grammar: "Quantifiers (How much)",
+                meaning: "Bạn cần mua bao nhiêu kem chống nắng cho chuyến đi?",
+                words: ["How", "much", "sunscreen", "do", "you", "need", "to", "buy", "?"],
+                explanation: "<strong>How much + danh từ không đếm được:</strong> <em>'Sunscreen'</em> (kem chống nắng) là danh từ không đếm được nên dùng <em>'How much'</em>."
             },
             {
                 id: 23,
-                category: "Simple Tenses",
-                pattern: "How often + do + Subject + Base Verb + Object + Time?",
-                words: ["How", "often", "do", "you", "visit", "your", "grandparents", "in", "summer?"],
-                explanation: "Frequency question: How often + do + subject + base verb (visit)."
+                unit: "Unit 5: Personal Care & Appearance",
+                unitNum: 5,
+                grammar: "Quantifiers (How many)",
+                meaning: "Bạn có bao nhiêu chai dầu gội đầu ở nhà?",
+                words: ["How", "many", "bottles", "of", "shampoo", "do", "you", "have", "?"],
+                explanation: "<strong>How many + danh từ đếm được số nhiều:</strong> <em>'Bottles'</em> (chai) đếm được nên ta dùng <em>'How many'</em>."
             },
             {
                 id: 24,
-                category: "Simple Tenses",
-                pattern: "Did + Subject + Base Verb + Object + Preposition phrase?",
-                words: ["Did", "she", "call", "you", "after", "finishing", "her", "homework?"],
-                explanation: "Simple Past Yes/No question: Did + subject + base verb (call)."
+                unit: "Unit 5: Personal Care & Appearance",
+                unitNum: 5,
+                grammar: "Indefinite Pronouns (Anyone)",
+                meaning: "Có ai ở tiệm làm tóc có thể cắt tóc cho tôi ngay bây giờ không?",
+                words: ["Can", "anyone", "at", "the", "salon", "cut", "my", "hair", "now", "?"],
+                explanation: "<strong>Đại từ bất định:</strong> Trong câu hỏi, ta dùng <em>'anyone'</em> (có ai đó) thay vì 'someone'."
             },
             {
                 id: 25,
-                category: "Simple Tenses",
-                pattern: "Where + will + Subject + Base Verb + Time?",
-                words: ["Where", "will", "you", "stay", "during", "your", "winter", "vacation?"],
-                explanation: "Future Simple: Question word + will + subject + base verb."
-            },
-            {
-                id: 26,
-                category: "Simple Tenses",
-                pattern: "Does + Subject + Base Verb + Preposition phrase?",
-                words: ["Does", "this", "bus", "stop", "near", "the", "central", "train", "station?"],
-                explanation: "Simple Present Yes/No question: Does + singular subject + base verb (stop)."
+                unit: "Unit 5: Personal Care & Appearance",
+                unitNum: 5,
+                grammar: "Simple Present (Salon Services)",
+                meaning: "Bạn thường đi làm móng tay bao lâu một lần?",
+                words: ["How", "often", "do", "you", "get", "a", "manicure", "?"],
+                explanation: "<strong>Cấu trúc:</strong> How often + do/does + S + V(nguyên mẫu)? Dùng để hỏi tần suất làm một việc gì đó."
             },
 
-            // 5. Present Perfect (27 - 32)
+            // --- UNIT 6: Eating Well (Used to, Negative Yes/No questions) ---
+            {
+                id: 26,
+                unit: "Unit 6: Eating Well",
+                unitNum: 6,
+                grammar: "Used to (Yes/No Question)",
+                meaning: "Hồi nhỏ bạn có từng ăn nhiều đồ ngọt không?",
+                words: ["Did", "you", "use", "to", "eat", "a", "lot", "of", "sweets", "?"],
+                explanation: "<strong>Cấu trúc 'Used to' ở dạng câu hỏi:</strong> Did + S + <em>use to</em> + V(nguyên mẫu)? Lưu ý: Khi đã có trợ động từ <em>'Did'</em> thì <em>'use'</em> không còn đuôi '-d'."
+            },
             {
                 id: 27,
-                category: "Present Perfect",
-                pattern: "Have + Subject + ever + Past Participle + Object + Place?",
-                words: ["Have", "you", "ever", "eaten", "sushi", "at", "a", "Japanese", "restaurant?"],
-                explanation: "Present Perfect experience: Have + subject + ever + past participle (eaten)."
+                unit: "Unit 6: Eating Well",
+                unitNum: 6,
+                grammar: "Used to (Wh-Question)",
+                meaning: "Trước đây bạn thường ăn gì vào bữa sáng?",
+                words: ["What", "did", "you", "use", "to", "eat", "for", "breakfast", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Wh-word + did + S + <em>use to</em> + V(nguyên mẫu)? Diễn tả thói quen trong quá khứ mà nay không còn nữa."
             },
             {
                 id: 28,
-                category: "Present Perfect",
-                pattern: "How long + has + Subject + Past Participle + Place?",
-                words: ["How", "long", "has", "she", "worked", "at", "this", "hospital?"],
-                explanation: "Duration question: How long + has + subject (she) + past participle (worked)."
+                unit: "Unit 6: Eating Well",
+                unitNum: 6,
+                grammar: "Negative Yes/No Question",
+                meaning: "Bạn không thích món hải sản này à? (Ngạc nhiên)",
+                words: ["Don't", "you", "like", "this", "seafood", "dish", "?"],
+                explanation: "<strong>Câu hỏi phủ định (Negative Yes/No question):</strong> Don't/Doesn't + S + V(nguyên mẫu)? Dùng để bày tỏ sự ngạc nhiên hoặc xác nhận thông tin."
             },
             {
                 id: 29,
-                category: "Present Perfect",
-                pattern: "Has + Subject + already + Past Participle + Object?",
-                words: ["Has", "your", "father", "already", "repaired", "the", "broken", "bicycle?"],
-                explanation: "Present Perfect with 'already': Has + subject + already + past participle."
+                unit: "Unit 6: Eating Well",
+                unitNum: 6,
+                grammar: "Negative Yes/No Question",
+                meaning: "Cô ấy không ăn chay sao?",
+                words: ["Isn't", "she", "a", "vegetarian", "?"],
+                explanation: "<strong>Câu hỏi phủ định với động từ 'to be':</strong> Isn't + she + danh từ? Dùng khi người nói ngạc nhiên về thói quen ăn uống của cô ấy."
             },
             {
                 id: 30,
-                category: "Present Perfect",
-                pattern: "Where + have + Subject + Past Participle + Purpose?",
-                words: ["Where", "have", "they", "gone", "for", "their", "anniversary", "trip?"],
-                explanation: "Present Perfect Wh- question: Where + have + subject + past participle (gone)."
+                unit: "Unit 6: Eating Well",
+                unitNum: 6,
+                grammar: "Simple Present (Food Passions)",
+                meaning: "Tại sao bạn lại tránh ăn thực phẩm có nhiều đường?",
+                words: ["Why", "do", "you", "avoid", "eating", "foods", "with", "lots", "of", "sugar", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Why + do + S + avoid + V-ing? Động từ <em>'avoid'</em> (tránh) luôn đi kèm với V-ing."
             },
+
+            // --- UNIT 7: About Personality (Gerunds and Infinitives, Gerunds after prepositions) ---
             {
                 id: 31,
-                category: "Present Perfect",
-                pattern: "Have + Subject + Past Participle + Gerund + Object + yet?",
-                words: ["Have", "you", "finished", "reading", "that", "interesting", "comic", "book", "yet?"],
-                explanation: "Present Perfect with 'yet' and gerund object: Have + subject + finished + reading... + yet."
+                unit: "Unit 7: About Personality",
+                unitNum: 7,
+                grammar: "Gerunds after Verbs",
+                meaning: "Bạn có thích gặp gỡ những người bạn mới ở bữa tiệc không?",
+                words: ["Do", "you", "enjoy", "meeting", "new", "people", "at", "parties", "?"],
+                explanation: "<strong>Danh động từ (Gerund):</strong> Sau động từ <em>'enjoy'</em> (thích thú), động từ tiếp theo phải ở dạng <em>V-ing</em> (<em>meeting</em>)."
             },
             {
                 id: 32,
-                category: "Present Perfect",
-                pattern: "Why + haven't + Subject + Past Participle + Object + Time?",
-                words: ["Why", "haven't", "you", "completed", "your", "grammar", "assignment", "today?"],
-                explanation: "Negative Present Perfect question: Why + haven't + subject + past participle (completed)."
+                unit: "Unit 7: About Personality",
+                unitNum: 7,
+                grammar: "Infinitives after Verbs",
+                meaning: "Cuối tuần này bạn muốn làm gì để thư giãn?",
+                words: ["What", "do", "you", "want", "to", "do", "to", "relax", "this", "weekend", "?"],
+                explanation: "<strong>Động từ nguyên mẫu có 'to' (Infinitive):</strong> Sau động từ <em>'want'</em> ta dùng <em>to + V(nguyên mẫu)</em>."
             },
-
-            // 6. Past Continuous (33 - 38)
             {
                 id: 33,
-                category: "Past Continuous",
-                pattern: "What + were + Subject + Verb-ing + Time?",
-                words: ["What", "were", "you", "doing", "at", "seven", "o'clock", "last", "night?"],
-                explanation: "Past Continuous action in progress: What + were + subject (you) + verb-ing (doing)."
+                unit: "Unit 7: About Personality",
+                unitNum: 7,
+                grammar: "Gerunds after Prepositions",
+                meaning: "Bạn có mệt mỏi với việc phải làm việc muộn mỗi ngày không?",
+                words: ["Are", "you", "tired", "of", "working", "late", "every", "day", "?"],
+                explanation: "<strong>Danh động từ sau giới từ:</strong> Sau tính từ + giới từ (<em>tired of</em> - mệt mỏi với), động từ luôn chia ở dạng <em>V-ing</em> (<em>working</em>)."
             },
             {
                 id: 34,
-                category: "Past Continuous",
-                pattern: "Was + Subject + Verb-ing + Time clause?",
-                words: ["Was", "it", "raining", "when", "you", "left", "the", "house", "today?"],
-                explanation: "Past Continuous interrupt phrase: Was + subject (it) + verb-ing (raining) + when-clause."
+                unit: "Unit 7: About Personality",
+                unitNum: 7,
+                grammar: "Gerunds after Prepositions",
+                meaning: "Anh ấy có hứng thú với việc học tâm lý học không?",
+                words: ["Is", "he", "interested", "in", "studying", "psychology", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Be + interested in + V-ing. Giới từ <em>'in'</em> kéo theo động từ <em>'studying'</em>."
             },
             {
                 id: 35,
-                category: "Past Continuous",
-                pattern: "Where + was + Subject + Verb-ing + Time clause?",
-                words: ["Where", "was", "she", "going", "when", "you", "saw", "her?"],
-                explanation: "Wh- question in Past Continuous: Where + was + subject (she) + verb-ing (going)."
+                unit: "Unit 7: About Personality",
+                unitNum: 7,
+                grammar: "Simple Present (Describing Personality)",
+                meaning: "Bạn thân của bạn là người có tính cách như thế nào?",
+                words: ["What", "is", "your", "best", "friend", "like", "?"],
+                explanation: "<strong>Cấu trúc hỏi tính cách:</strong> What + be + S + <em>like</em>? Lưu ý: Câu hỏi này hỏi về tính cách/đặc điểm, không phải hỏi sở thích."
             },
+
+            // --- UNIT 8: The Arts (The Passive Voice: Statements & Questions in Present/Past) ---
             {
                 id: 36,
-                category: "Past Continuous",
-                pattern: "Were + Subject + Verb-ing + Time clause?",
-                words: ["Were", "they", "sleeping", "when", "the", "loud", "fire", "alarm", "sounded?"],
-                explanation: "Plural subject in Past Continuous: Were + subject (they) + verb-ing (sleeping)."
+                unit: "Unit 8: The Arts",
+                unitNum: 8,
+                grammar: "Passive Voice (Past Wh-Question)",
+                meaning: "Bức tranh nổi tiếng này được vẽ bởi ai?",
+                words: ["Who", "was", "this", "famous", "painting", "painted", "by", "?"],
+                explanation: "<strong>Câu bị động (Quá khứ đơn):</strong> Who + was/were + S + V3/ed + by? Dùng để hỏi tác giả của một tác phẩm nghệ thuật."
             },
             {
                 id: 37,
-                category: "Past Continuous",
-                pattern: "Why + was + Subject + Verb-ing + Adverb + Place?",
-                words: ["Why", "was", "he", "running", "so", "fast", "down", "the", "street?"],
-                explanation: "Past Continuous: Why + was + subject (he) + verb-ing (running) + adverb."
+                unit: "Unit 8: The Arts",
+                unitNum: 8,
+                grammar: "Passive Voice (Past Wh-Question)",
+                meaning: "Những chiếc bình gốm này được làm ra ở đâu?",
+                words: ["Where", "were", "these", "ceramic", "vases", "made", "?"],
+                explanation: "<strong>Câu bị động số nhiều:</strong> Chủ ngữ <em>'these ceramic vases'</em> (những chiếc bình gốm) ở số nhiều nên dùng <em>'were'</em> + V3 (<em>made</em>)."
             },
             {
                 id: 38,
-                category: "Past Continuous",
-                pattern: "Who + were + Subject + Verb-ing + Preposition + Time?",
-                words: ["Who", "were", "you", "talking", "to", "on", "the", "phone", "earlier?"],
-                explanation: "Question with ending preposition: Who + were + you + talking to..."
+                unit: "Unit 8: The Arts",
+                unitNum: 8,
+                grammar: "Passive Voice (When)",
+                meaning: "Tác phẩm điêu khắc bằng đá này được tạo ra khi nào?",
+                words: ["When", "was", "this", "stone", "sculpture", "created", "?"],
+                explanation: "<strong>Cấu trúc:</strong> When + was + S(số ít) + V3/ed? Hỏi thời điểm tác phẩm được sáng tạo."
             },
-
-            // 7. Passive Voice (39 - 44)
             {
                 id: 39,
-                category: "Passive Voice",
-                pattern: "Where + is + Subject + Past Participle + Preposition phrase?",
-                words: ["Where", "is", "English", "spoken", "as", "a", "main", "language?"],
-                explanation: "Present Passive Voice question: Where + is + subject (English) + past participle (spoken)."
+                unit: "Unit 8: The Arts",
+                unitNum: 8,
+                grammar: "Passive Voice (Yes/No)",
+                meaning: "Chiếc bát gỗ này có phải được làm thủ công bằng tay không?",
+                words: ["Was", "this", "wooden", "bowl", "made", "by", "hand", "?"],
+                explanation: "<strong>Câu hỏi Yes/No dạng bị động:</strong> Was/Were + S + V3/ed? <em>'Made by hand'</em> nghĩa là làm thủ công."
             },
             {
                 id: 40,
-                category: "Passive Voice",
-                pattern: "Was + Subject + Past Participle + by + Agent?",
-                words: ["Was", "this", "beautiful", "cake", "made", "by", "your", "mother?"],
-                explanation: "Past Passive Voice question: Was + subject (this cake) + past participle (made) + by-agent."
+                unit: "Unit 8: The Arts",
+                unitNum: 8,
+                grammar: "Passive Voice (Present Simple)",
+                meaning: "Những bức ảnh này có được trưng bày ở bảo tàng không?",
+                words: ["Are", "these", "photographs", "shown", "at", "the", "museum", "?"],
+                explanation: "<strong>Bị động Hiện tại đơn:</strong> Are + S(số nhiều) + V3 (<em>shown</em>)? Hỏi về sự việc diễn ra ở hiện tại."
             },
+
+            // --- UNIT 9: Living in Cyberspace (Infinitive of purpose, Comparisons with as...as) ---
             {
                 id: 41,
-                category: "Passive Voice",
-                pattern: "When + was + Subject + Past Participle + Place?",
-                words: ["When", "was", "this", "famous", "bridge", "built", "in", "London?"],
-                explanation: "Past Passive Wh- question: When + was + subject + past participle (built)."
+                unit: "Unit 9: Living in Cyberspace",
+                unitNum: 9,
+                grammar: "Infinitive of Purpose",
+                meaning: "Bạn dùng mạng Internet để làm gì mỗi ngày?",
+                words: ["What", "do", "you", "use", "the", "Internet", "to", "do", "every", "day", "?"],
+                explanation: "<strong>Động từ nguyên mẫu chỉ mục đích (Infinitive of purpose):</strong> Dùng <em>'to + V'</em> (<em>to do</em>) để diễn tả mục đích sử dụng của một vật."
             },
             {
                 id: 42,
-                category: "Passive Voice",
-                pattern: "Are + Subject + Past Participle + Place?",
-                words: ["Are", "these", "fresh", "apples", "grown", "in", "your", "garden?"],
-                explanation: "Present Passive with plural subject: Are + subject (these apples) + past participle (grown)."
+                unit: "Unit 9: Living in Cyberspace",
+                unitNum: 42,
+                unitNum: 9,
+                grammar: "Comparisons with as...as",
+                meaning: "Chiếc máy tính xách tay mới này có nhanh bằng chiếc cũ không?",
+                words: ["Is", "this", "new", "laptop", "as", "fast", "as", "the", "old", "one", "?"],
+                explanation: "<strong>So sánh ngang bằng:</strong> Be + S + <em>as + tính từ + as</em> + danh từ? Dùng để so sánh hai sản phẩm công nghệ."
             },
             {
                 id: 43,
-                category: "Passive Voice",
-                pattern: "Why + was + Subject + Past Participle + Time?",
-                words: ["Why", "was", "the", "football", "game", "cancelled", "yesterday", "afternoon?"],
-                explanation: "Past Passive: Question word + was + subject (the game) + past participle (cancelled)."
+                unit: "Unit 9: Living in Cyberspace",
+                unitNum: 9,
+                grammar: "Making Suggestions (Why don't you)",
+                meaning: "Tại sao bạn không thử khởi động lại máy tính của mình nhỉ?",
+                words: ["Why", "don't", "you", "try", "restarting", "your", "computer", "?"],
+                explanation: "<strong>Mẫu câu gợi ý khắc phục sự cố:</strong> Why don't you + V(nguyên mẫu)? Sau <em>'try'</em> dùng <em>V-ing</em> để gợi ý thử một giải pháp."
             },
             {
                 id: 44,
-                category: "Passive Voice",
-                pattern: "Where + are + Subject + Past Participle + Time?",
-                words: ["Where", "are", "those", "smartphones", "manufactured", "nowadays?"],
-                explanation: "Present Passive: Where + are + plural subject + past participle (manufactured)."
+                unit: "Unit 9: Living in Cyberspace",
+                unitNum: 9,
+                grammar: "Polite Request (Could you)",
+                meaning: "Bạn có thể xem giúp tôi màn hình máy tính này được không?",
+                words: ["Could", "you", "take", "a", "look", "at", "my", "computer", "screen", "?"],
+                explanation: "<strong>Mẫu câu nhờ giúp đỡ:</strong> Could you + V(nguyên mẫu)? Cụm từ <em>'take a look at'</em> nghĩa là xem qua, kiểm tra giúp."
             },
-
-            // 8. Mixed Review & Combinations (45 - 50)
             {
                 id: 45,
-                category: "Mixed Review",
-                pattern: "Did + Subject + use to + Verb + Gerund + Object?",
-                words: ["Did", "you", "use", "to", "enjoy", "playing", "video", "games?"],
-                explanation: "Combination of 'used to' + gerund: Did + subject + use to + enjoy + playing."
+                unit: "Unit 9: Living in Cyberspace",
+                unitNum: 9,
+                grammar: "Simple Present (Tech Troubleshooting)",
+                meaning: "Tại sao máy in của tôi không kết nối được với Wi-Fi?",
+                words: ["Why", "doesn't", "my", "printer", "connect", "to", "the", "Wi-Fi", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Why + doesn't + S(số ít) + V(nguyên mẫu)? Hỏi nguyên nhân lỗi thiết bị."
             },
+
+            // --- UNIT 10: Ethics and Values (Unreal Conditional, Whose / Possessive pronouns) ---
             {
                 id: 46,
-                category: "Mixed Review",
-                pattern: "Were + Subject + Verb-ing + Time clause with Passive Voice?",
-                words: ["Were", "you", "watching", "TV", "when", "the", "email", "was", "sent?"],
-                explanation: "Past Continuous main clause ('were you watching') + Past Passive clause ('email was sent')."
+                unit: "Unit 10: Ethics and Values",
+                unitNum: 10,
+                grammar: "Possessive Question (Whose)",
+                meaning: "Chiếc ví da màu đen trên bàn này là của ai?",
+                words: ["Whose", "black", "leather", "wallet", "is", "this", "on", "the", "table", "?"],
+                explanation: "<strong>Từ để hỏi 'Whose' (Của ai):</strong> Whose + danh từ + be + this/that? Dùng để hỏi chủ sở hữu của món đồ bị bỏ quên."
             },
             {
                 id: 47,
-                category: "Mixed Review",
-                pattern: "Why + didn't + Subject + use to + Verb + to-infinitive?",
-                words: ["Why", "didn't", "you", "use", "to", "agree", "to", "help", "us?"],
-                explanation: "Combination of 'didn't use to' + 'verb to-infinitive': didn't use to agree to help."
+                unit: "Unit 10: Ethics and Values",
+                unitNum: 10,
+                grammar: "Unreal Conditional (Type 2)",
+                meaning: "Bạn sẽ làm gì nếu tìm thấy một chiếc điện thoại đắt tiền trên xe buýt?",
+                words: ["What", "would", "you", "do", "if", "you", "found", "an", "expensive", "phone", "?"],
+                explanation: "<strong>Câu điều kiện không có thật ở hiện tại (Loại 2):</strong> What + <em>would</em> + S + V(nguyên mẫu) + if + S + <em>V2/ed</em> (<em>found</em>)?"
             },
             {
                 id: 48,
-                category: "Mixed Review",
-                pattern: "Has + Subject + been + Past Participle + Agent?",
-                words: ["Has", "the", "stolen", "bike", "been", "found", "by", "the", "police?"],
-                explanation: "Present Perfect Passive: Has + subject + been + past participle (found)."
+                unit: "Unit 10: Ethics and Values",
+                unitNum: 10,
+                grammar: "Unreal Conditional (Yes/No)",
+                meaning: "Nếu nhân viên thu ngân trả thừa tiền cho bạn, bạn có trả lại không?",
+                words: ["Would", "you", "return", "the", "money", "if", "the", "cashier", "overcharged", "you", "?"],
+                explanation: "<strong>Cấu trúc:</strong> Would + S + V(nguyên mẫu) + if + S + V2/ed? Dùng để thảo luận các tình huống đạo đức giả định."
             },
             {
                 id: 49,
-                category: "Mixed Review",
-                pattern: "What + were + Subject + Verb-ing + to-infinitive + Time clause?",
-                words: ["What", "were", "you", "planning", "to", "do", "before", "it", "started", "raining?"],
-                explanation: "Past Continuous + to-infinitive + gerund clause: planning to do... started raining."
+                unit: "Unit 10: Ethics and Values",
+                unitNum: 10,
+                grammar: "Possessive Pronouns (Yours/Hers)",
+                meaning: "Chùm chìa khóa này là của bạn hay của cô ấy?",
+                words: ["Are", "these", "keys", "yours", "or", "hers", "?"],
+                explanation: "<strong>Đại từ sở hữu (Possessive pronouns):</strong> <em>'yours'</em> (của bạn) và <em>'hers'</em> (của cô ấy) đứng độc lập mà không cần danh từ theo sau."
             },
             {
                 id: 50,
-                category: "Mixed Review",
-                pattern: "Did + Subject + use to + Verb + Gerund + Time phrase?",
-                words: ["Did", "you", "use", "to", "hate", "eating", "fish", "when", "young?"],
-                explanation: "'Did use to' + verb + gerund: Did you use to + hate + eating."
+                unit: "Unit 10: Ethics and Values",
+                unitNum: 10,
+                grammar: "Modals of Advice (Should)",
+                meaning: "Tôi nên làm gì để trả lại chiếc túi xách này cho chủ nhân của nó?",
+                words: ["What", "should", "I", "do", "to", "return", "this", "bag", "to", "its", "owner", "?"],
+                explanation: "<strong>Động từ khuyết thiếu 'Should':</strong> What + should + S + V(nguyên mẫu)? Dùng để xin lời khuyên về cách hành xử đúng đắn."
             }
         ];
 
+        // =========================================================================
+        // STATE MANAGEMENT
+        // =========================================================================
+        let filteredQuestions = [...questionsData];
         let currentIndex = 0;
-        let score = 0;
-        let streak = 0;
-        let selectedCategory = "All";
+        let currentUnitFilter = 'ALL';
+        let selectedWords = []; // Array of objects: { id, text, originalBankIndex }
+        let bankWords = [];     // Array of objects: { id, text, used }
+        let completedSet = new Set(); // Track IDs of correctly solved questions
+        let soundEnabled = true;
+        let projectorZoom = false;
 
-        // Store user state for all 50 questions
-        // { state: 'unanswered'|'correct'|'incorrect', userWords: [], attempts: 0 }
-        let userState = Array.from({ length: 50 }, () => ({
-            state: 'unanswered',
-            userWords: [],
-            attempts: 0,
-            hintShown: false
-        }));
+        // Pastel color palettes for word chips to create visual harmony & engagement
+        const chipStyles = [
+            "bg-indigo-50 text-indigo-900 border-indigo-200 hover:bg-indigo-100",
+            "bg-sky-50 text-sky-900 border-sky-200 hover:bg-sky-100",
+            "bg-teal-50 text-teal-900 border-teal-200 hover:bg-teal-100",
+            "bg-rose-50 text-rose-900 border-rose-200 hover:bg-rose-100",
+            "bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100",
+            "bg-purple-50 text-purple-900 border-purple-200 hover:bg-purple-100"
+        ];
 
-        let currentPool = [];
-        let currentSelected = [];
-
-        // Categories list
-        const categories = ["All", ...new Set(questionsData.map(q => q.category))];
-
-        window.onload = function() {
-            initQuiz();
-        };
-
-        function initQuiz() {
-            currentIndex = 0;
-            score = 0;
-            streak = 0;
-            userState = Array.from({ length: 50 }, () => ({
-                state: 'unanswered',
-                userWords: [],
-                attempts: 0,
-                hintShown: false
-            }));
-
-            renderCategoryFilters();
-            renderQuestion();
-            updateGlobalStats();
-        }
-
-        function renderCategoryFilters() {
-            const container = document.getElementById('categoryFilterContainer');
-            container.innerHTML = categories.map(cat => `
-                <button onclick="filterCategory('${cat}')" class="px-2.5 py-1 rounded-md transition font-medium ${
-                    selectedCategory === cat 
-                        ? 'bg-indigo-600 text-white' 
-                        : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
-                }">
-                    ${cat}
-                </button>
-            `).join('');
-        }
-
-        function filterCategory(cat) {
-            selectedCategory = cat;
-            renderCategoryFilters();
-            
-            // Find first question matching filter
-            if (cat !== "All") {
-                const idx = questionsData.findIndex(q => q.category === cat);
-                if (idx !== -1) {
-                    currentIndex = idx;
-                }
+        // =========================================================================
+        // SOUND EFFECTS (TONE.JS - NO EXTERNAL AUDIO URLS)
+        // =========================================================================
+        let synth = null;
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                synth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.02, decay: 0.1, sustain: 0.1, release: 0.4 }
+                }).toDestination();
+                synth.volume.value = -8;
             }
-            renderQuestion();
-            toggleGridDrawer(false);
         }
 
-        // Helper to shuffle array predictably without matching original exact order initially
-        function shuffleArray(array) {
-            let arr = [...array];
-            let attempts = 0;
-            do {
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
                 }
-                attempts++;
-            } while (arr.join(' ') === array.join(' ') && arr.length > 2 && attempts < 10);
-            return arr;
+                const now = Tone.now();
+                if (type === 'pop') {
+                    synth.triggerAttackRelease("C5", "32n", now);
+                } else if (type === 'remove') {
+                    synth.triggerAttackRelease("A4", "32n", now);
+                } else if (type === 'success') {
+                    synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+                } else if (type === 'error') {
+                    synth.triggerAttackRelease(["E4", "Eb4"], "8n", now);
+                }
+            } catch (e) {
+                // Fail silently if browser blocks audio before gesture
+            }
         }
 
-        function renderQuestion() {
-            const q = questionsData[currentIndex];
-            const state = userState[currentIndex];
-
-            // Header Meta updates
-            document.getElementById('questionNumBadge').textContent = `Question ${currentIndex + 1} / 50`;
-            document.getElementById('headerProgress').textContent = `${currentIndex + 1}/50`;
-            document.getElementById('questionCategory').textContent = q.category;
-            
-            // Update Pattern Hint
-            const patternHint = document.getElementById('patternHint');
-            const patternText = document.getElementById('patternText');
-            if (state.hintShown) {
-                patternText.textContent = q.pattern;
-                patternHint.classList.remove('hidden');
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-lg";
+                playSound('pop');
             } else {
-                patternHint.classList.add('hidden');
+                icon.className = "fa-solid fa-volume-xmark text-lg text-slate-400";
             }
+        }
 
-            // Streak display
-            const streakBadge = document.getElementById('streakBadge');
-            document.getElementById('streakCount').textContent = streak;
-            if (streak >= 2) {
-                streakBadge.classList.remove('hidden');
-                streakBadge.classList.add('flex');
+        // =========================================================================
+        // PROJECTOR MODE (LARGE CLASSROOM TEXT)
+        // =========================================================================
+        function toggleProjectorMode() {
+            projectorZoom = !projectorZoom;
+            const btn = document.getElementById('zoom-btn');
+            const label = document.getElementById('zoom-label');
+            if (projectorZoom) {
+                btn.classList.replace('bg-amber-50', 'bg-amber-400');
+                btn.classList.replace('text-amber-700', 'text-white');
+                label.textContent = "Cỡ chữ chuẩn";
             } else {
-                streakBadge.classList.add('hidden');
-                streakBadge.classList.remove('flex');
+                btn.classList.replace('bg-amber-400', 'bg-amber-50');
+                btn.classList.replace('text-white', 'text-amber-700');
+                label.textContent = "Chữ lớn";
             }
-
-            // Prepare word pools
-            if (state.state === 'unanswered' && state.userWords.length === 0) {
-                currentSelected = [];
-                currentPool = shuffleArray(q.words);
-            } else {
-                currentSelected = [...state.userWords];
-                // pool is remaining words
-                const tempSelected = [...currentSelected];
-                currentPool = q.words.filter(w => {
-                    const idx = tempSelected.indexOf(w);
-                    if (idx > -1) {
-                        tempSelected.splice(idx, 1);
-                        return false;
-                    }
-                    return true;
-                });
-            }
-
-            renderWordChips();
-            updateFeedbackBanner();
-            updateNavigationButtons();
-            renderGridDrawer();
+            renderChips();
         }
 
-        function renderWordChips() {
-            const dropZone = document.getElementById('answerDropZone');
-            const poolZone = document.getElementById('wordsPool');
-            const placeholder = document.getElementById('emptyPlaceholder');
-
-            // Clear existing chips
-            dropZone.querySelectorAll('.word-chip').forEach(el => el.remove());
-            poolZone.innerHTML = '';
-
-            // Toggle placeholder visibility
-            if (currentSelected.length === 0) {
-                placeholder.classList.remove('hidden');
-            } else {
-                placeholder.classList.add('hidden');
-            }
-
-            // Render Answer Dropzone chips
-            currentSelected.forEach((word, idx) => {
-                const chip = createChip(word, idx, 'answer');
-                dropZone.appendChild(chip);
-            });
-
-            // Render Pool Zone chips
-            currentPool.forEach((word, idx) => {
-                const chip = createChip(word, idx, 'pool');
-                poolZone.appendChild(chip);
-            });
+        // =========================================================================
+        // INITIALIZATION & FILTERING
+        // =========================================================================
+        function initApp() {
+            renderUnitFilterBar();
+            loadQuestion(0);
         }
 
-        function createChip(word, index, source) {
-            const btn = document.createElement('button');
-            btn.className = `word-chip font-medium text-sm sm:text-base px-3 py-2 rounded-xl shadow-md border cursor-pointer flex items-center justify-center transition-all ${
-                source === 'answer' 
-                    ? 'bg-indigo-600 border-indigo-400 text-white hover:bg-indigo-700' 
-                    : 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
-            }`;
-            btn.textContent = word;
-            btn.draggable = true;
+        function renderUnitFilterBar() {
+            const bar = document.getElementById('unit-filter-bar');
+            const units = [
+                { id: 'ALL', label: 'Tất cả (50 câu)' },
+                { id: 1, label: 'Unit 1: Getting Acquainted' },
+                { id: 2, label: 'Unit 2: Movies' },
+                { id: 3, label: 'Unit 3: Hotels' },
+                { id: 4, label: 'Unit 4: Cars & Driving' },
+                { id: 5, label: 'Unit 5: Personal Care' },
+                { id: 6, label: 'Unit 6: Eating Well' },
+                { id: 7, label: 'Unit 7: Personality' },
+                { id: 8, label: 'Unit 8: The Arts' },
+                { id: 9, label: 'Unit 9: Cyberspace' },
+                { id: 10, label: 'Unit 10: Ethics & Values' }
+            ];
 
-            // Click listener
-            btn.onclick = () => {
-                playSound('click');
-                if (source === 'pool') {
-                    moveWordToAnswer(index);
-                } else {
-                    moveWordToPool(index);
-                }
-            };
-
-            // Drag listener
-            btn.ondragstart = (e) => {
-                e.dataTransfer.setData('text/plain', JSON.stringify({ index, source }));
-            };
-
-            return btn;
-        }
-
-        function moveWordToAnswer(poolIdx) {
-            const word = currentPool.splice(poolIdx, 1)[0];
-            currentSelected.push(word);
-            saveCurrentState();
-            renderWordChips();
-        }
-
-        function moveWordToPool(answerIdx) {
-            const word = currentSelected.splice(answerIdx, 1)[0];
-            currentPool.push(word);
-            saveCurrentState();
-            renderWordChips();
-        }
-
-        function clearSelectedWords() {
-            playSound('click');
-            const q = questionsData[currentIndex];
-            currentSelected = [];
-            currentPool = shuffleArray(q.words);
-            saveCurrentState();
-            renderWordChips();
-        }
-
-        function saveCurrentState() {
-            userState[currentIndex].userWords = [...currentSelected];
-        }
-
-        // Drag & Drop HTML5 Helpers
-        function allowDrop(e) {
-            e.preventDefault();
-        }
-
-        function handleDropToAnswer(e) {
-            e.preventDefault();
-            const dataStr = e.dataTransfer.getData('text/plain');
-            if (!dataStr) return;
-            const { index, source } = JSON.parse(dataStr);
-            if (source === 'pool') {
-                moveWordToAnswer(index);
-            }
-        }
-
-        function handleDropToPool(e) {
-            e.preventDefault();
-            const dataStr = e.dataTransfer.getData('text/plain');
-            if (!dataStr) return;
-            const { index, source } = JSON.parse(dataStr);
-            if (source === 'answer') {
-                moveWordToPool(index);
-            }
-        }
-
-        function checkAnswer() {
-            const q = questionsData[currentIndex];
-            const state = userState[currentIndex];
-
-            if (currentSelected.length === 0) {
-                showToast("Please tap or drag words into the answer box first!");
-                return;
-            }
-
-            const targetSentence = q.words.join(' ');
-            const userSentence = currentSelected.join(' ');
-
-            state.attempts++;
-
-            const feedbackBanner = document.getElementById('feedbackBanner');
-            const feedbackIcon = document.getElementById('feedbackIcon');
-            const feedbackTitle = document.getElementById('feedbackTitle');
-            const feedbackText = document.getElementById('feedbackText');
-            const correctOrderBox = document.getElementById('correctOrderBox');
-            const correctOrderSentence = document.getElementById('correctOrderSentence');
-            const card = document.getElementById('quizCard');
-
-            if (userSentence === targetSentence) {
-                // Correct!
-                playSound('correct');
-                if (state.state !== 'correct') {
-                    state.state = 'correct';
-                    score += 10;
-                    streak++;
-                }
-
-                feedbackBanner.className = "mb-6 p-4 rounded-xl border bg-emerald-950/60 border-emerald-500/40 text-emerald-200 animate-pop";
-                feedbackIcon.className = "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500 text-slate-900 font-bold text-lg";
-                feedbackIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
-                feedbackTitle.textContent = "Excellent! Correct Question Order";
-                feedbackTitle.className = "font-bold text-sm mb-1 text-emerald-300";
-                feedbackText.textContent = q.explanation;
-                correctOrderBox.classList.add('hidden');
-
-                document.getElementById('checkBtn').classList.add('hidden');
-                document.getElementById('nextBtn').classList.remove('hidden');
-
-            } else {
-                // Incorrect
-                playSound('error');
-                state.state = 'incorrect';
-                streak = 0;
-
-                card.classList.add('animate-shake');
-                setTimeout(() => card.classList.remove('animate-shake'), 400);
-
-                feedbackBanner.className = "mb-6 p-4 rounded-xl border bg-rose-950/60 border-rose-500/40 text-rose-200 animate-pop";
-                feedbackIcon.className = "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-rose-500 text-white font-bold text-lg";
-                feedbackIcon.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
-                feedbackTitle.textContent = "Not quite right yet";
-                feedbackTitle.className = "font-bold text-sm mb-1 text-rose-300";
-                feedbackText.textContent = "Check word order (e.g. question word first, followed by helper verb, subject, and main verb).";
-                
-                correctOrderBox.classList.remove('hidden');
-                correctOrderSentence.textContent = q.words.join(' ');
-            }
-
-            feedbackBanner.classList.remove('hidden');
-            updateGlobalStats();
-            renderGridDrawer();
-        }
-
-        function updateFeedbackBanner() {
-            const state = userState[currentIndex];
-            const q = questionsData[currentIndex];
-            const feedbackBanner = document.getElementById('feedbackBanner');
-            const checkBtn = document.getElementById('checkBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            if (state.state === 'correct') {
-                checkBtn.classList.add('hidden');
-                nextBtn.classList.remove('hidden');
-            } else {
-                checkBtn.classList.remove('hidden');
-                nextBtn.classList.add('hidden');
-                if (state.state === 'unanswered') {
-                    feedbackBanner.classList.add('hidden');
-                }
-            }
-        }
-
-        // Hint feature
-        function getHint() {
-            const state = userState[currentIndex];
-            const q = questionsData[currentIndex];
-
-            state.hintShown = true;
-            document.getElementById('patternText').textContent = q.pattern;
-            document.getElementById('patternHint').classList.remove('hidden');
-
-            // Find first word mismatch and highlight/autofill
-            for (let i = 0; i < q.words.length; i++) {
-                if (currentSelected[i] !== q.words[i]) {
-                    showToast(`Hint: The word at position ${i + 1} should be "${q.words[i]}"`);
-                    playSound('click');
-                    break;
-                }
-            }
-        }
-
-        function navigateQuestion(direction) {
-            const newIdx = currentIndex + direction;
-            if (newIdx >= 0 && newIdx < 50) {
-                currentIndex = newIdx;
-                renderQuestion();
-            } else if (newIdx >= 50) {
-                showResultsModal();
-            }
-        }
-
-        function updateNavigationButtons() {
-            document.getElementById('prevBtn').disabled = (currentIndex === 0);
-        }
-
-        function updateGlobalStats() {
-            document.getElementById('scoreDisplay').textContent = score;
-            const progressPercent = ((currentIndex + 1) / 50) * 100;
-            document.getElementById('progressBar').style.width = `${progressPercent}%`;
-        }
-
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl shadow-xl z-50 animate-pop border border-indigo-400';
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
-        }
-
-        function toggleGridDrawer(forceState) {
-            const drawer = document.getElementById('gridDrawer');
-            const overlay = document.getElementById('drawerOverlay');
-            const isOpen = !drawer.classList.contains('translate-x-full');
-            const targetState = (forceState !== undefined) ? forceState : !isOpen;
-
-            if (targetState) {
-                drawer.classList.remove('translate-x-full');
-                overlay.classList.remove('hidden');
-                renderGridDrawer();
-            } else {
-                drawer.classList.add('translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        }
-
-        function renderGridDrawer() {
-            const grid = document.getElementById('questionsGrid');
-            grid.innerHTML = questionsData.map((q, idx) => {
-                const state = userState[idx];
-                let bgClass = "bg-slate-700/60 text-slate-300 border-slate-600 hover:bg-slate-600";
-
-                if (state.state === 'correct') {
-                    bgClass = "bg-emerald-600/30 text-emerald-300 border-emerald-500/50 hover:bg-emerald-600/50";
-                } else if (state.state === 'incorrect') {
-                    bgClass = "bg-rose-600/30 text-rose-300 border-rose-500/50 hover:bg-rose-600/50";
-                }
-
-                if (idx === currentIndex) {
-                    bgClass += " ring-2 ring-indigo-400 font-extrabold scale-105";
-                }
-
+            bar.innerHTML = units.map(u => {
+                const isActive = currentUnitFilter === u.id;
+                const activeClasses = isActive
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                    : 'bg-white/80 hover:bg-white text-slate-700 border-white/90';
                 return `
-                    <button onclick="jumpToQuestion(${idx})" class="h-10 rounded-lg border text-xs font-mono font-bold flex items-center justify-center transition-all ${bgClass}">
-                        ${idx + 1}
+                    <button onclick="filterByUnit(${typeof u.id === 'string' ? `'${u.id}'` : u.id})"
+                        class="px-4 py-2 rounded-2xl border-2 font-bold text-xs sm:text-sm whitespace-nowrap transition active:scale-95 ${activeClasses}">
+                        ${u.label}
                     </button>
                 `;
             }).join('');
         }
 
-        function jumpToQuestion(idx) {
-            currentIndex = idx;
-            renderQuestion();
-            toggleGridDrawer(false);
+        function filterByUnit(unitId) {
+            playSound('pop');
+            currentUnitFilter = unitId;
+            if (unitId === 'ALL') {
+                filteredQuestions = [...questionsData];
+            } else {
+                filteredQuestions = questionsData.filter(q => q.unitNum === unitId);
+            }
+            currentIndex = 0;
+            renderUnitFilterBar();
+            loadQuestion(0);
         }
 
-        function showResultsModal() {
-            const modal = document.getElementById('resultsModal');
-            const finalScoreEl = document.getElementById('finalScore');
-            const accuracyEl = document.getElementById('accuracyPercent');
-            const rankEl = document.getElementById('masteryBadge');
-            const breakdownList = document.getElementById('breakdownList');
-            const retryBtn = document.getElementById('retryMistakesBtn');
+        // =========================================================================
+        // SHUFFLE & LOAD QUESTION
+        // =========================================================================
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            // Ensure shuffled order isn't accidentally identical to the solved order
+            if (arr.length > 2 && arr.every((val, idx) => val === array[idx])) {
+                [arr[0], arr[1]] = [arr[1], arr[0]];
+            }
+            return arr;
+        }
 
-            const correctCount = userState.filter(s => s.state === 'correct').length;
-            const attemptedCount = userState.filter(s => s.state !== 'unanswered').length;
-            const accuracy = attemptedCount > 0 ? Math.round((correctCount / 50) * 100) : 0;
+        function loadQuestion(index) {
+            if (index < 0 || index >= filteredQuestions.length) return;
+            currentIndex = index;
+            const q = filteredQuestions[currentIndex];
 
-            finalScoreEl.textContent = `${correctCount} / 50`;
-            accuracyEl.textContent = `${accuracy}%`;
+            // Update Metadata UI
+            document.getElementById('q-number-badge').textContent = `Câu ${q.id} / 50`;
+            document.getElementById('unit-badge').textContent = q.unit;
+            document.getElementById('grammar-badge').textContent = q.grammar;
+            document.getElementById('vietnamese-meaning').textContent = q.meaning;
 
-            let rank = "A2 Beginner";
-            if (accuracy >= 90) rank = "A2 Grammar Master 🌟";
-            else if (accuracy >= 75) rank = "A2 Proficient 👍";
-            else if (accuracy >= 50) rank = "A2 Developing 📖";
-            rankEl.textContent = rank;
+            // Hide Feedback Box
+            const fbBox = document.getElementById('feedback-box');
+            fbBox.classList.add('hidden');
 
-            // Generate breakdown list
-            breakdownList.innerHTML = questionsData.map((q, idx) => {
-                const state = userState[idx];
-                const statusIcon = state.state === 'correct' 
-                    ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' 
-                    : state.state === 'incorrect' 
-                        ? '<i class="fa-solid fa-circle-xmark text-rose-400"></i>' 
-                        : '<i class="fa-solid fa-minus text-slate-500"></i>';
+            // Reset Answer Zone border
+            const answerZone = document.getElementById('answer-zone');
+            answerZone.className = "min-h-[96px] sm:min-h-[116px] w-full rounded-3xl bg-white/90 border-3 border-dashed border-indigo-200 p-4 sm:p-5 flex flex-wrap items-center gap-2.5 sm:gap-3.5 transition-all duration-300 shadow-inner";
 
-                return `
-                    <div class="p-2 rounded bg-slate-800 border border-slate-700/60 flex items-start gap-2">
-                        <div class="mt-0.5">${statusIcon}</div>
-                        <div class="flex-1">
-                            <div class="flex justify-between font-medium text-slate-200 text-[11px]">
-                                <span>#${idx + 1}. ${q.category}</span>
-                            </div>
-                            <p class="text-slate-300 font-mono text-[11px] mt-0.5">${q.words.join(' ')}</p>
+            // Prepare Shuffled Word Bank
+            const shuffled = shuffleArray(q.words);
+            bankWords = shuffled.map((word, idx) => ({
+                id: `w-${q.id}-${idx}`,
+                text: word,
+                used: false,
+                styleClass: chipStyles[idx % chipStyles.length]
+            }));
+            selectedWords = [];
+
+            // Navigation button states
+            document.getElementById('prev-btn').disabled = (currentIndex === 0);
+            document.getElementById('next-btn').innerHTML = (currentIndex === filteredQuestions.length - 1)
+                ? `<span>Hoàn thành</span><i class="fa-solid fa-flag-checkered"></i>`
+                : `<span>Câu tiếp theo</span><i class="fa-solid fa-arrow-right"></i>`;
+
+            renderChips();
+            updateProgressUI();
+        }
+
+        // =========================================================================
+        // RENDER WORD CHIPS (ANSWER ZONE & WORD BANK)
+        // =========================================================================
+        function renderChips() {
+            const answerZone = document.getElementById('answer-zone');
+            const wordBank = document.getElementById('word-bank');
+
+            const textSizeClass = projectorZoom
+                ? "text-2xl sm:text-3xl md:text-4xl px-5 py-3.5 sm:px-6 sm:py-4"
+                : "text-lg sm:text-xl md:text-2xl px-4 py-2.5 sm:px-5 sm:py-3";
+
+            // 1. Render Answer Zone
+            if (selectedWords.length === 0) {
+                answerZone.innerHTML = `
+                    <span class="text-slate-400 font-semibold text-base sm:text-xl italic select-none w-full text-center">
+                        Nhấn vào các thẻ từ bên dưới để xếp thành câu hỏi hoàn chỉnh...
+                    </span>
+                `;
+            } else {
+                answerZone.innerHTML = selectedWords.map((item, idx) => `
+                    <button onclick="deselectWord(${idx})"
+                        class="word-chip animate-pop-in rounded-2xl border-2 font-display font-extrabold shadow-sm cursor-pointer bg-white text-indigo-950 border-indigo-300 hover:border-rose-400 hover:bg-rose-50 ${textSizeClass}">
+                        ${escapeHtml(item.text)}
+                    </button>
+                `).join('');
+            }
+
+            // 2. Render Word Bank
+            wordBank.innerHTML = bankWords.map((item, idx) => {
+                if (item.used) {
+                    return `
+                        <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-100/60 text-transparent select-none ${textSizeClass}">
+                            ${escapeHtml(item.text)}
                         </div>
-                    </div>
+                    `;
+                }
+                return `
+                    <button onclick="selectWord(${idx})"
+                        class="word-chip rounded-2xl border-2 font-display font-extrabold shadow-sm cursor-pointer ${item.styleClass} ${textSizeClass}">
+                        ${escapeHtml(item.text)}
+                    </button>
                 `;
             }).join('');
+        }
 
-            const mistakeCount = userState.filter(s => s.state === 'incorrect').length;
-            if (mistakeCount > 0) {
-                retryBtn.classList.remove('hidden');
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // =========================================================================
+        // INTERACTIONS: SELECT, DESELECT, HINT, RESET, REVEAL
+        // =========================================================================
+        function selectWord(bankIdx) {
+            const item = bankWords[bankIdx];
+            if (!item || item.used) return;
+            playSound('pop');
+            item.used = true;
+            selectedWords.push({ ...item, bankIdx });
+            document.getElementById('feedback-box').classList.add('hidden');
+            renderChips();
+        }
+
+        function deselectWord(selectedIdx) {
+            const item = selectedWords[selectedIdx];
+            if (!item) return;
+            playSound('remove');
+            bankWords[item.bankIdx].used = false;
+            selectedWords.splice(selectedIdx, 1);
+            document.getElementById('feedback-box').classList.add('hidden');
+            renderChips();
+        }
+
+        function resetCurrentQuestion() {
+            playSound('remove');
+            bankWords.forEach(w => w.used = false);
+            selectedWords = [];
+            document.getElementById('feedback-box').classList.add('hidden');
+            const answerZone = document.getElementById('answer-zone');
+            answerZone.className = "min-h-[96px] sm:min-h-[116px] w-full rounded-3xl bg-white/90 border-3 border-dashed border-indigo-200 p-4 sm:p-5 flex flex-wrap items-center gap-2.5 sm:gap-3.5 transition-all duration-300 shadow-inner";
+            renderChips();
+        }
+
+        function showHint() {
+            const q = filteredQuestions[currentIndex];
+            // Find the first position where the user hasn't placed the right word yet
+            let targetIndex = 0;
+            while (targetIndex < selectedWords.length && selectedWords[targetIndex].text === q.words[targetIndex]) {
+                targetIndex++;
+            }
+
+            if (targetIndex >= q.words.length) return;
+
+            // If user had wrong words from targetIndex onwards, return them to bank
+            while (selectedWords.length > targetIndex) {
+                const removed = selectedWords.pop();
+                bankWords[removed.bankIdx].used = false;
+            }
+
+            // Find the needed word in bankWords
+            const neededText = q.words[targetIndex];
+            const foundBankIdx = bankWords.findIndex(w => !w.used && w.text === neededText);
+            if (foundBankIdx !== -1) {
+                selectWord(foundBankIdx);
+            }
+        }
+
+        function revealAnswer() {
+            const q = filteredQuestions[currentIndex];
+            bankWords.forEach(w => w.used = false);
+            selectedWords = [];
+
+            q.words.forEach(wordText => {
+                const foundIdx = bankWords.findIndex(w => !w.used && w.text === wordText);
+                if (foundIdx !== -1) {
+                    bankWords[foundIdx].used = true;
+                    selectedWords.push({ ...bankWords[foundIdx], bankIdx: foundIdx });
+                }
+            });
+
+            renderChips();
+            checkAnswer(true);
+        }
+
+        // =========================================================================
+        // CHECK ANSWER & VIETNAMESE FEEDBACK ENGINE
+        // =========================================================================
+        function formatSentence(wordsArr) {
+            return wordsArr.join(' ').replace(/\s+([?.!,])/g, '$1');
+        }
+
+        function checkAnswer(isRevealed = false) {
+            const q = filteredQuestions[currentIndex];
+            const fbBox = document.getElementById('feedback-box');
+            const fbIconWrap = document.getElementById('feedback-icon-wrap');
+            const fbIcon = document.getElementById('feedback-icon');
+            const fbTitle = document.getElementById('feedback-title');
+            const correctDisplay = document.getElementById('correct-sentence-display');
+            const fbExplanation = document.getElementById('feedback-explanation');
+            const answerZone = document.getElementById('answer-zone');
+
+            if (selectedWords.length === 0) {
+                answerZone.classList.add('animate-shake', 'border-amber-400');
+                setTimeout(() => answerZone.classList.remove('animate-shake', 'border-amber-400'), 500);
+                return;
+            }
+
+            const userSentence = formatSentence(selectedWords.map(w => w.text));
+            const targetSentence = formatSentence(q.words);
+
+            fbBox.classList.remove('hidden', 'bg-emerald-50/95', 'border-emerald-300', 'bg-rose-50/95', 'border-rose-300', 'bg-sky-50/95', 'border-sky-300');
+
+            if (userSentence === targetSentence) {
+                // Correct!
+                if (!isRevealed) {
+                    playSound('success');
+                    completedSet.add(q.id);
+                    launchConfetti();
+                } else {
+                    playSound('pop');
+                }
+
+                answerZone.className = "min-h-[96px] sm:min-h-[116px] w-full rounded-3xl bg-emerald-50/70 border-3 border-solid border-emerald-400 p-4 sm:p-5 flex flex-wrap items-center gap-2.5 sm:gap-3.5 transition-all duration-300";
+
+                fbBox.classList.add(isRevealed ? 'bg-sky-50/95' : 'bg-emerald-50/95', isRevealed ? 'border-sky-300' : 'border-emerald-300');
+                fbIconWrap.className = `w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm text-white ${isRevealed ? 'bg-sky-500' : 'bg-emerald-500'}`;
+                fbIcon.className = isRevealed ? "fa-solid fa-lightbulb" : "fa-solid fa-check";
+                fbTitle.textContent = isRevealed ? "Đáp án chuẩn & Giải thích ngữ pháp:" : "Chính xác! Tuyệt vời!";
+                fbTitle.className = `font-display font-black text-xl sm:text-2xl mb-1 ${isRevealed ? 'text-sky-800' : 'text-emerald-800'}`;
+                
+                correctDisplay.textContent = targetSentence;
+                correctDisplay.classList.remove('hidden');
+                fbExplanation.innerHTML = q.explanation;
+
+                updateProgressUI();
             } else {
-                retryBtn.classList.add('hidden');
+                // Incorrect -> Give constructive Vietnamese hint
+                playSound('error');
+                answerZone.classList.add('animate-shake');
+                setTimeout(() => answerZone.classList.remove('animate-shake'), 500);
+
+                answerZone.className = "min-h-[96px] sm:min-h-[116px] w-full rounded-3xl bg-rose-50/70 border-3 border-solid border-rose-300 p-4 sm:p-5 flex flex-wrap items-center gap-2.5 sm:gap-3.5 transition-all duration-300";
+
+                fbBox.classList.add('bg-rose-50/95', 'border-rose-300');
+                fbIconWrap.className = "w-12 h-12 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-sm";
+                fbIcon.className = "fa-solid fa-triangle-exclamation";
+                fbTitle.textContent = "Chưa chính xác rồi! Hãy kiểm tra lại trật tự từ nhé:";
+                fbTitle.className = "font-display font-black text-xl sm:text-2xl mb-1 text-rose-800";
+                
+                correctDisplay.classList.add('hidden');
+
+                // Smart diagnostic hint in Vietnamese
+                let diagnostic = "";
+                if (selectedWords.length < q.words.length) {
+                    diagnostic = `• Bạn mới chọn <strong>${selectedWords.length}/${q.words.length}</strong> thẻ từ. Hãy sử dụng hết tất cả các từ gợi ý nhé!<br>`;
+                }
+                if (selectedWords[selectedWords.length - 1].text !== '?') {
+                    diagnostic += `• Đừng quên đặt dấu chấm hỏi <strong>"?"</strong> ở cuối câu hỏi nhé.<br>`;
+                }
+                if (selectedWords[0].text !== q.words[0]) {
+                    diagnostic += `• Từ đầu tiên của câu hỏi này nên là <strong>"${q.words[0]}"</strong> (từ để hỏi hoặc trợ động từ đứng đầu câu).`;
+                } else {
+                    diagnostic += `• Từ đầu tiên <strong>"${q.words[0]}"</strong> đã đúng! Hãy chú ý vị trí của <em>trợ động từ + chủ ngữ + động từ chính</em>.`;
+                }
+
+                fbExplanation.innerHTML = diagnostic;
             }
-
-            modal.classList.remove('hidden');
         }
 
-        function closeResultsModal() {
-            document.getElementById('resultsModal').classList.add('hidden');
-        }
-
-        function restartQuiz() {
-            closeResultsModal();
-            initQuiz();
-        }
-
-        function retryMistakes() {
-            closeResultsModal();
-            const firstMistake = userState.findIndex(s => s.state === 'incorrect');
-            if (firstMistake !== -1) {
-                currentIndex = firstMistake;
-                renderQuestion();
+        // =========================================================================
+        // NAVIGATION & PROGRESS
+        // =========================================================================
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                playSound('pop');
+                loadQuestion(currentIndex - 1);
             }
         }
+
+        function nextQuestion() {
+            if (currentIndex < filteredQuestions.length - 1) {
+                playSound('pop');
+                loadQuestion(currentIndex + 1);
+            } else {
+                playSound('success');
+                launchConfetti();
+                toggleQuestionModal();
+            }
+        }
+
+        function updateProgressUI() {
+            document.getElementById('score-display').textContent = `${completedSet.size} / 50`;
+            const pct = Math.round(((currentIndex + 1) / filteredQuestions.length) * 100);
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('progress-text').textContent = `Tiến độ: ${currentIndex + 1}/${filteredQuestions.length} (${pct}%)`;
+        }
+
+        // =========================================================================
+        // MODAL: 50 QUESTIONS OVERVIEW
+        // =========================================================================
+        function toggleQuestionModal() {
+            const modal = document.getElementById('questions-modal');
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                renderModalList();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderModalList() {
+            const list = document.getElementById('modal-question-list');
+            list.innerHTML = questionsData.map((q) => {
+                const isSolved = completedSet.has(q.id);
+                const statusBadge = isSolved
+                    ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-extrabold"><i class="fa-solid fa-check mr-1"></i>Đã xong</span>`
+                    : `<span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">Chưa làm</span>`;
+
+                return `
+                    <button onclick="jumpToQuestion(${q.id})"
+                        class="text-left p-4 rounded-2xl border-2 transition hover:border-indigo-400 hover:bg-indigo-50/40 flex flex-col justify-between gap-2 ${isSolved ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-100 bg-white'}">
+                        <div class="flex items-center justify-between w-full">
+                            <span class="font-display font-black text-indigo-600">Câu ${q.id} • ${q.unit.split(':')[0]}</span>
+                            ${statusBadge}
+                        </div>
+                        <p class="font-bold text-slate-700 text-sm line-clamp-1">${q.meaning}</p>
+                        <span class="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md self-start">${q.grammar}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function jumpToQuestion(questionId) {
+            currentUnitFilter = 'ALL';
+            filteredQuestions = [...questionsData];
+            renderUnitFilterBar();
+            const targetIdx = filteredQuestions.findIndex(q => q.id === questionId);
+            if (targetIdx !== -1) {
+                loadQuestion(targetIdx);
+            }
+            toggleQuestionModal();
+        }
+
+        // =========================================================================
+        // CELEBRATION CONFETTI ANIMATION
+        // =========================================================================
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#A78BFA', '#60A5FA', '#34D399', '#FBBF24', '#F472B6'];
+            const particles = Array.from({ length: 65 }, () => ({
+                x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+                y: canvas.height * 0.55,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 1) * 14 - 4,
+                size: Math.random() * 8 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * 360,
+                vRot: (Math.random() - 0.5) * 10
+            }));
+
+            let frame = 0;
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.38; // gravity
+                    p.rotation += p.vRot;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.rotation * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                    ctx.restore();
+                });
+
+                frame++;
+                if (frame < 75) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animateConfetti();
+        }
+
+        // Start App on Window Load
+        window.onload = function() {
+            initApp();
+        };
     </script>
 </body>
 </html>
